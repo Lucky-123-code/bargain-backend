@@ -25,8 +25,10 @@ def init_db():
         name TEXT NOT NULL,
         category TEXT,
         price REAL,
-        rating REAL
-    )
+        rating REAL,
+        image_url TEXT,
+        description TEXT
+    )   
     """)
 
     cursor.execute("SELECT COUNT(*) FROM products")
@@ -34,15 +36,53 @@ def init_db():
 
     if count == 0:
         sample_products = [
-            ("iPhone 13", "Mobile", 52000, 4.6),
-            ("Samsung S21", "Mobile", 42000, 4.5),
-            ("Sony Headphones", "Accessories", 8000, 4.4),
-            ("Dell Laptop", "Laptop", 65000, 4.3),
-            ("Boat Earbuds", "Accessories", 1500, 4.2),
+            (
+                "iPhone 13",
+                "Mobile",
+                52000,
+                4.6,
+                "https://via.placeholder.com/300?text=iPhone+13",
+                "Apple iPhone 13 with A15 Bionic chip"
+            ),
+            (
+                "Samsung S21",
+                "Mobile",
+                42000,
+                4.5,
+                "https://via.placeholder.com/300?text=Samsung+S21",
+                "Samsung flagship smartphone"
+            ),
+            (
+                "Sony Headphones",
+                "Accessories",
+                8000,
+                4.4,
+                "https://via.placeholder.com/300?text=Sony+Headphones",
+                "Noise cancelling headphones"
+            ),
+            (
+                "Dell Laptop",
+                "Laptop",
+                65000,
+                4.3,
+                "https://via.placeholder.com/300?text=Dell+Laptop",
+                "Powerful laptop for work"
+            ),
+            (
+                "Boat Earbuds",
+                "Accessories",
+                1500,
+                4.2,
+                "https://via.placeholder.com/300?text=Boat+Earbuds",
+                "Affordable wireless earbuds"
+            ),
         ]
 
         cursor.executemany(
-            "INSERT INTO products (name, category, price, rating) VALUES (?, ?, ?, ?)",
+            """
+            INSERT INTO products (name, category, price, rating, image_url, description)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
             sample_products
         )
         conn.commit()
