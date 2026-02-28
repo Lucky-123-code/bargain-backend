@@ -3,8 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import sqlite3
 from typing import List, Dict, Any
+from database import get_connection, init_db
+from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from database import init_db
+from database import init_db
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 
 DB_NAME = "products.db"
+
 
 
 # ---------- Database Helper ----------
@@ -93,15 +101,10 @@ def init_db():
 # ---------- Lifespan (Startup/Shutdown) ----------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()   # Runs at startup
+    init_db()
     yield
-    # Shutdown logic (if needed)
 
-
-app = FastAPI(
-    title="Bargain Electronics API",
-    lifespan=lifespan
-)
+app = FastAPI(lifespan=lifespan)
 
 
 # ---------- CORS ----------
@@ -145,3 +148,55 @@ def get_product(product_id: int) -> Dict[str, Any]:
         raise HTTPException(status_code=404, detail="Product not found")
 
     return dict(row)
+
+from pydantic import BaseModel
+from typing import Dict, Any, List
+
+class BargainRequest(BaseModel):
+    product_id: int
+    offered_price: float
+
+@app.post("/bargain/{product_id}")
+def bargain(product_id: int, offered_price: float) -> Dict[str, Any]:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM products WHERE id = ?", (product_id,))
+    row = cursor.fetchone()
+
+    conn.close()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    product = dict(row)
+
+    actual_price = float(product.get("price", 0))
+    cost_price = float(product.get("cost", 0))
+
+    # Simple bargain logic
+    min_price = cost_price * 1.1  # 10% profit
+
+    if offered_price >= actual_price:
+        return {"status": "accepted", "final_price": actual_price}
+
+    elif offered_price >= min_price:
+        counter = (offered_price + actual_price) / 2
+        return {"status": "counter", "counter_price": round(counter, 2)}
+
+    else:
+        return {"status": "rejected", "message": "Price too low"}
+    
+from fastapi import File, UploadFile
+import shutil
+
+@app.post("/upload")
+def upload_image(file: UploadFile = File(...)):
+    file_path = f"uploads/{file.filename}"
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return {"image_url": f"http://127.0.0.1:8000/uploads/{file.filename}"}
+
+from fastapi.staticfiles import StaticFiles
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
