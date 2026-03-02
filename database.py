@@ -1,15 +1,25 @@
-import mysql.connector
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+DATABASE_URL = "postgresql://bargainuser:BargainUser$936@localhost/bargainhub"
+
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
+Base = declarative_base()
+
 
 def get_db():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",   # <-- change if you set a password
-        database="bargain_db"
-    )
-import sqlite3
-
-def get_connection():
-    conn = sqlite3.connect("bargain.db")
-    conn.row_factory = sqlite3.Row   # IMPORTANT
-    return conn
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
