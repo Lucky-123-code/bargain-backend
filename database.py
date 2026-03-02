@@ -1,34 +1,25 @@
-import sqlite3
-import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "bargain.db")
+DATABASE_URL = "postgresql://bargainuser:BargainUser$936@localhost/bargainhub"
 
-def get_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+)
 
-def init_db():
-    print(f"Using database at: {DB_PATH}")
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
 
-    conn = get_connection()
-    cursor = conn.cursor()
+Base = declarative_base()
 
-    # Create products table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS products (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT,
-        price REAL,
-        cost REAL,
-        image TEXT,
-        stock INTEGER DEFAULT 0
-    )
-    """)
 
-    conn.commit()
-    conn.close()
-
-    print("Products table ensured.")
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
