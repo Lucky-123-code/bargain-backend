@@ -5,6 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from database import get_db
+from constants import ERROR_PRODUCT_NOT_FOUND
 
 router = APIRouter()
 
@@ -70,6 +71,44 @@ def get_categories(db: Session = Depends(get_db)) -> List[str]:
         return []
 
 
+@router.post("/categories")
+def add_category(category: Dict[str, str], db: Session = Depends(get_db)) -> Dict[str, str]:
+    """Add a new category"""
+    category_name = category.get("name", "").strip()
+    if not category_name:
+        raise HTTPException(status_code=400, detail="Category name is required")
+    
+    # Check if category already exists
+    existing = db.execute(
+        text("SELECT id FROM categories WHERE LOWER(name) = LOWER(:name)"),
+        {"name": category_name}
+    ).first()
+    
+    if existing:
+        return {"message": "Category already exists", "name": category_name}
+    
+    # Insert new category
+    db.execute(
+        text("INSERT INTO categories (name) VALUES (:name)"),
+        {"name": category_name}
+    )
+    db.commit()
+    
+    return {"message": "Category added successfully", "name": category_name}
+
+
+@router.get("/categories")
+def get_all_categories(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+    """Get all categories"""
+    try:
+        rows = db.execute(text("SELECT id, name FROM categories ORDER BY name")).fetchall()
+        return [{"id": row[0], "name": row[1]} for row in rows]
+    except Exception as e:
+        # If categories table doesn't exist, return empty
+        print(f"Error fetching categories: {e}")
+        return []
+
+
 @router.get("/products/{product_id}")
 def get_product(product_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
     row = db.execute(
@@ -78,6 +117,6 @@ def get_product(product_id: int, db: Session = Depends(get_db)) -> Dict[str, Any
     ).mappings().first()
 
     if not row:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail=ERROR_PRODUCT_NOT_FOUND)
 
     return dict(row)

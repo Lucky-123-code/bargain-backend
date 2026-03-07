@@ -1,9 +1,8 @@
-from models.user import User
-from models.product import Product
-from models.order import Order
-from models.cart import Cart
-from models.address import Address
-from models.notification import Notification
+from .user import User
+from .product import Product
+from .cart import Cart
+from .address import Address
+from .order import Order
+from .notification import Notification
 
-__all__ = ["User", "Product", "Order", "Cart", "Address", "Notification"]
-
+__all__ = ["User", "Product", "Cart", "Address", "Order", "Notification"]

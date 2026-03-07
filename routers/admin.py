@@ -6,6 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from schemas import ProductCreate, OrderUpdateStatus
 from database import get_db
+from constants import ERROR_PRODUCT_NOT_FOUND, ERROR_ORDER_NOT_FOUND
 
 router = APIRouter(prefix="/admin")
 
@@ -61,7 +62,7 @@ def update_product(product_id: int, product: ProductCreate, db: Session = Depend
     db.commit()
     
     if result.rowcount == 0:  # type: ignore[attr-defined]
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail=ERROR_PRODUCT_NOT_FOUND)
     
     return {"message": "Product updated"}
 
@@ -75,7 +76,7 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     db.commit()
     
     if result.rowcount == 0:  # type: ignore[attr-defined]
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail=ERROR_PRODUCT_NOT_FOUND)
     
     return {"message": "Product deleted"}
 
@@ -104,7 +105,7 @@ def update_order_status(order_id: int, status_update: OrderUpdateStatus, db: Ses
     db.commit()
     
     if result.rowcount == 0:  # type: ignore[attr-defined]
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(status_code=404, detail=ERROR_ORDER_NOT_FOUND)
     
     return {"message": "Order status updated"}
 
@@ -195,4 +196,3 @@ def admin_login(credentials: Dict[str, str], db: Session = Depends(get_db)) -> D
 def admin_logout() -> Dict[str, str]:
     """Admin logout"""
     return {"message": "Logout successful"}
-

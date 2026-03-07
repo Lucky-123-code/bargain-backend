@@ -14,12 +14,9 @@ from auth_utils import (
     get_password_hash, 
     verify_password
 )
+from constants import GOOGLE_CLIENT_ID, ERROR_USER_NOT_FOUND
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-# Google OAuth - In production, use environment variables
-GOOGLE_CLIENT_ID = "your-google-client-id.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "your-google-client-secret"
 
 
 @router.post("/register")
@@ -206,7 +203,7 @@ def get_current_user_info(db: Session = Depends(get_db), current_user: Dict[str,
     ).first()
     
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     
     return {
         "id": user[0],
@@ -252,7 +249,7 @@ def update_user_profile(
     ).first()
     
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     
     return {
         "message": "Profile updated successfully",
@@ -262,4 +259,3 @@ def update_user_profile(
             "email": user[2]
         }
     }
-

@@ -7,16 +7,25 @@ from datetime import datetime
 # ------------------------
 
 class AddressBase(BaseModel):
+    name: str
+    phone: str
     street: str
     city: str
     state: str
     pincode: str
+    is_default: bool = False
 
 class AddressCreate(AddressBase):
     pass
 
-class AddressUpdate(AddressBase):
-    pass
+class AddressUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    street: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pincode: Optional[str] = None
+    is_default: Optional[bool] = None
 
 # ------------------------
 # USER
@@ -72,6 +81,9 @@ class OrderCreate(BaseModel):
     customer_name: str
     product_name: str
     total_price: float
+    address_id: Optional[int] = None
+    payment_method: Optional[str] = "cod"
+    upi_id: Optional[str] = None
 
 
 class OrderOut(BaseModel):
@@ -136,3 +148,15 @@ class BargainChatResponse(BaseModel):
     is_accepted: bool = False  # If the deal was accepted
     final_price: Optional[float] = None  # Final price if accepted
     reasoning: Optional[str] = None  # LLM's reasoning for the response
+
+# ------------------------
+# INTERNAL SCHEMAS
+# ------------------------
+
+class ProductInfo(BaseModel):
+    name: str
+    price: float
+    cost: float
+    stock: int
+    minimum_price: float
+    original_price: float
