@@ -3,6 +3,22 @@ from typing import Optional
 from datetime import datetime
 
 # ------------------------
+# ADDRESS
+# ------------------------
+
+class AddressBase(BaseModel):
+    street: str
+    city: str
+    state: str
+    pincode: str
+
+class AddressCreate(AddressBase):
+    pass
+
+class AddressUpdate(AddressBase):
+    pass
+
+# ------------------------
 # USER
 # ------------------------
 
@@ -30,10 +46,11 @@ class ProductBase(BaseModel):
     name: str
     description: Optional[str] = None
     price: float
-    image_url: Optional[str] = None
     cost: float
     image: Optional[str] = None
-    stock: int
+    image_url: Optional[str] = None
+    stock: int = 0
+    category: Optional[str] = None
 
 
 class ProductCreate(ProductBase):
@@ -94,3 +111,28 @@ class NotificationOut(BaseModel):
 
 class BargainRequest(BaseModel):
     offer: float
+
+
+# ------------------------
+# LLM BARGAIN (Conversational)
+# ------------------------
+
+class BargainMessage(BaseModel):
+    """A single message in the bargain conversation"""
+    role: str  # "user" or "assistant" (store)
+    content: str
+
+
+class BargainChatRequest(BaseModel):
+    """Request for LLM-powered conversational bargaining"""
+    message: str
+    conversation_history: list[BargainMessage] = []
+
+
+class BargainChatResponse(BaseModel):
+    """Response from LLM-powered conversational bargaining"""
+    response: str  # The LLM's response message
+    suggested_price: Optional[float] = None  # If user made an offer, the suggested counter
+    is_accepted: bool = False  # If the deal was accepted
+    final_price: Optional[float] = None  # Final price if accepted
+    reasoning: Optional[str] = None  # LLM's reasoning for the response

@@ -6,20 +6,26 @@ from typing import Dict
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from routers import products, admin, bargain, orders, notifications
+from routers import products, admin, bargain, orders, notifications, cart, address, auth
 from database import engine, Base
-Base.metadata.create_all(bind=engine)
 
+
+# Setup directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 IMAGE_DIR = os.path.join(BASE_DIR, "images")
 os.makedirs(IMAGE_DIR, exist_ok=True)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Startup
     yield
+    # Shutdown
+
 
 app = FastAPI(lifespan=lifespan)
 
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,6 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files for images
 app.mount("/images", StaticFiles(directory=IMAGE_DIR), name="images")
 
 # Include routers
@@ -36,20 +43,27 @@ app.include_router(admin.router)
 app.include_router(bargain.router)
 app.include_router(orders.router)
 app.include_router(notifications.router)
+app.include_router(cart.router)
+app.include_router(address.router)
+app.include_router(auth.router)
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+
 
 @app.get("/")
 def home():
     return {"message": "Bargain API Running"}
 
+
 # Image Upload
 @app.post("/upload-image")
 async def upload_image(file: UploadFile = File(...)) -> Dict[str, str]:
-
     # Pylance-safe check
     if file.filename is None or file.filename == "":
         raise HTTPException(status_code=400, detail="Invalid filename")
 
-    filename: str = file.filename  # Explicit typing
+    filename: str = file.filename
 
     file_path: str = os.path.join(IMAGE_DIR, filename)
 
@@ -57,3 +71,4 @@ async def upload_image(file: UploadFile = File(...)) -> Dict[str, str]:
         shutil.copyfileobj(file.file, buffer)
 
     return {"image_url": f"/images/{filename}"}
+

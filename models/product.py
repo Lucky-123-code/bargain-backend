@@ -13,4 +13,6 @@ class Product(Base):
     price: Mapped[float] = mapped_column(Float, nullable=False)
     cost: Mapped[float] = mapped_column(Float, nullable=False)
     image: Mapped[str] = mapped_column(String, nullable=True)
+    image_url: Mapped[str] = mapped_column(String, nullable=True)
     stock: Mapped[int] = mapped_column(Integer, default=0)
+    category: Mapped[str] = mapped_column(String, nullable=True)
